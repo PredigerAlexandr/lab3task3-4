@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center" xmlns="http://www.w3.org/1999/html">
+    <div class="card p-3">
+        <div class="d-flex align-items-center">
+<!--            <form  method="POST">-->
+                <div class="image"> <img src="{{ url_for('static', filename='photos/' + user['photo']) }}" class="rounded" width="75%"> </div>
+                <div class="ml-3 w-100 text-center">
+                    <form  method="POST">
+                        <h4 class="mb-0 mt-10">
+                        <input class="container text-center edit-text" name='name' type="text" value="{{user[1]}}" {% if auth|int != user[0]|int and admin|int != True|int %} readonly="True" {% endif %} >
+                        </h4>
+                    <span text-center>{% if user[5] == True %} <p>Администратор</p> {% else %} Пользователь {% endif%} </span>
+                        <div class=" row-cols-2 p-2 mt-2 bg-primary d-flex justify-content-between rounded text-white stats">
+                            <div class="d-flex flex-column">
+                                <span class="articles">Возраст</span>
+                                <span class="number1">
+                                    <input class="container text-center edit-text" name='age' type="text" value="{{user[3]}}" {% if auth|int != user[0]|int and admin|int != True|int %} readonly="True" {% endif %} >
+                                </span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <span class="followers">E-mail</span>
+                                <span class="number2">
+                                    <input class="container text-center edit-text" name='email' type="text" value="{{user[2]}}" {% if auth|int != user[0]|int and admin|int != True|int %} readonly="True" {% endif %} >
+                                </span>
+                            </div>
+                        </div>
+                        <br>
+                        <p><input class="btn btn-primary" id="submit" name="submit" type="submit" value="Сохранить"></p>
+                    </form>
+                </div>
+<!--            </form>-->
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <div class="row row-cols-1 row-cols-md-4 mb-6 text-center">
+        {% for user in users %}
+               <div class="col">
+                   <a {% if is_auth %} href="/profile/{{user[0]}}/"{% else %}href="/login/"{% endif%}>
+                       <div class="card mb-4 rounded-3 shadow-sm">
+                        <div class="text-center">
+                                <img src="{{ url_for('static', filename = 'photos/' + user[6] ) }}" width="75%" vspace="7" style="border-radius:10px" />
+                        </div>
+                        <a><h3>{{user[1]}} {% if user[0] == is_auth|int %}(Вы){% endif %}</h3></a>
+                        <p>{{user[2]}}</p>
+                        <p>Возраст: {{user[3]}}</p>
+                    </div>
+                   </a>
+              </div>
+      {% endfor %}
+      </div>
+    <div class="cantainer">
+        <div class="pagination justify-content-center">
+        <a href="/users?page=0" class="page-link">&laquo;</a>
+        {% for page in range(pagecount) %}
+            <a href="/users?page={{ page }}" class="page-link">{{ page + 1 }} </a>
+        {% endfor %}
+        <a href="/users?page={{pagecount - 1}}" class="page-link">&raquo;</a>
+</div>
+    </div>
+{% endblock %}
