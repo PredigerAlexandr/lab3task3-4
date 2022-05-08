@@ -3,6 +3,7 @@ import sqlalchemy
 from sqlalchemy import orm
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 from .db_session import SqlAlchemyBase
 
 class User(SqlAlchemyBase):
@@ -15,6 +16,8 @@ class User(SqlAlchemyBase):
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     admin = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     photo = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+
+    news = orm.relation('News', back_populates='user')
 
     def __repr__(self):
         return f'<User> {self.id} {self.name} {self.email} {self.age} {self.hashed_password} {self.admin} {self.photo}'

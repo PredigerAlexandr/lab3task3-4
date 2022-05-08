@@ -1,15 +1,44 @@
 from PIL import Image
 
-from Lab3.task3.data import db_session
+from Lab3.task3.data import db_session, news
 from Lab3.task3.data.users import User
-db_session.global_init('db/users.db')
+from Lab3.task3.data.news import News
+# from Lab3.task3.data import news
+from Lab3.task3.data.categorys import Category
+
+db_session.global_init('db/blogs.db')
 db_sess = db_session.create_session()
-for user in db_sess.query(User).all():
-    img = Image.open('static/photos/' + user.photo)
-    width = 500
-    height = 500
-    resized_img = img.resize((width, height), Image.ANTIALIAS)
-    resized_img.save('static/photos/' + user.photo)
+# news = News()
+# news.title = 'Князь'
+# news.content = 'Князь хороший был2'
+# news.user_id = 2
+# cat = db_sess.query(Category).filter(Category.id == 1).first()
+# print(cat.name)
+# news.categories.append(cat)
+# cat = db_sess.query(Category).filter(Category.id == 2).first()
+# news.categories.append(cat)
+# db_sess.add(news)
+# db_sess.commit()
+
+# news = db_sess.query(News).filter(News.id==12).first()
+# print(news.categories[1].name)
+
+# update_news = db_sess.query(News).filter(News.id==1).first()
+# update_news.title = "12312231223qrergwergfergqaerdsfdsfsfsdfsdfsfsf"
+#
+# db_sess.commit()
+# io = []
+# if any(x in io for x in news.get_categories(1)):
+#     print("!")
+# user = db_sess.query(User).filter(User.id==1).first()
+# post_list = user.news
+# for i in post_list:
+#     print(i.title)
+# newss = db_sess.query(News).filter(News.id==1).first()
+# print(news.get_categories(newss.id))
+category = db_sess.query(Category).filter(Category.name=='Business').first()
+print((category.news).json())
+
 
 
 

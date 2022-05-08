@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<h1>{{ title }}</h1>
+<form action="" method="post" novalidate>
+    {{ form.csrf_token }}
+    <div>
+        {{ form.title.label }}<br>
+        {{ form.title(class="form-control", value=now_news.title) }}<br>
+        {% for error in form.title.errors %}
+            <div class="alert alert-danger" role="alert">
+            {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.content.label }}<br>
+        {{ form.content(class="form-control")}}<br>
+        {% for error in form.content.errors %}
+            <div class="alert alert-danger" role="alert">
+            {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+    {% if 'Business' in categories_news %}
+        <p>{{ form.Business(checked="True") }} {{ form.Business.label }}</p>
+    {% else %}
+        <p>{{ form.Business() }} {{ form.Business.label }}</p>
+    {% endif %}
+    {% if 'Economy' in categories_news %}
+        <p>{{ form.Economy(checked="True") }} {{ form.Economy.label }}</p>
+    {% else %}
+        <p>{{ form.Economy() }} {{ form.Economy.label }}</p>
+    {% endif %}
+    {% if 'Humor' in categories_news %}
+        <p>{{ form.Humor(checked="True") }} {{ form.Humor.label }}</p>
+    {% else %}
+        <p>{{ form.Humor() }} {{ form.Humor.label }}</p>
+    {% endif %}
+    {% if 'Politics' in categories_news %}
+        <p>{{ form.Politics(checked="True") }} {{ form.Politics.label }}</p>
+    {% else %}
+        <p>{{ form.Politics() }} {{ form.Politics.label }}</p>
+    {% endif %}
+    {% if 'Education' in categories_news %}
+        <p>{{ form.Education(checked="True") }} {{ form.Education.label }}</p>
+    {% else %}
+        <p>{{ form.Education() }} {{ form.Education.label }}</p>
+    {% endif %}
+    <p>{{ form.submit(class="btn btn-primary") }}</p>
+</form>
+</div>
+{% endblock %}

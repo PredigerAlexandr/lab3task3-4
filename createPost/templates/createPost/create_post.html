@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<h1>{{ title }}</h1>
+<form action="" method="post" novalidate>
+    {{ form.csrf_token }}
+    <div>
+        {{ form.title.label }}<br>
+        {{ form.title(class="form-control") }}<br>
+        {% for error in form.title.errors %}
+            <div class="alert alert-danger" role="alert">
+            {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.content.label }}<br>
+        {{ form.content(class="form-control") }}<br>
+        {% for error in form.content.errors %}
+            <div class="alert alert-danger" role="alert">
+            {{ error }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <p>{{ form.Business() }} {{ form.Business.label }}</p>
+    <p>{{ form.Economy() }} {{ form.Economy.label }}</p>
+    <p>{{ form.Humor() }} {{ form.Humor.label }}</p>
+    <p>{{ form.Politics() }} {{ form.Politics.label }}</p>
+    <p>{{ form.Education() }} {{ form.Education.label }}</p>
+    <p>{{ form.submit(class="btn btn-primary") }}</p>
+</form>
+</div>
+{% endblock %}

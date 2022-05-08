@@ -8,8 +8,13 @@ from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
 
+from Lab3.task3.data.news import News
+from Lab3.task3.data.news import get_categories
 from data.users import User
 from data import db_session
+from createPost.createPost import createPost
+from API.API import API, api
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired, Email
@@ -19,7 +24,13 @@ from flask_login import LoginManager, login_user, current_user, login_required, 
 from data.UserLogin import UserLogin
 
 app = Flask(__name__)
+
 app.config['SECRET_KEY'] = '0cf1fa42fad749ab58c62063ddc5d4edb39c8ec5'
+
+app.register_blueprint(createPost, url_prefix='/createPost/')
+app.register_blueprint(API, url_prefix='/api/')
+main_api = api
+main_api.init_app(app)
 
 UPLOAD_FOLDER = 'static/photos'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
@@ -28,13 +39,14 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 DATABASE = 'db/menuUrl.db'
 DEBUG = True
 app.config.from_object(__name__)
+db_session.global_init('db/blogs.db')
 
 login_manager = LoginManager(app)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    db = get_db('users', 'db/users.db')
+    db = get_db('users', 'db/blogs.db')
     dbase = FDataBase(db)
     print('load user')
     return UserLogin().fromDB(user_id, dbase)
@@ -65,17 +77,104 @@ def main():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+class SearchForm(FlaskForm):
+    Business = BooleanField('Бизнесс')
+    Economy = BooleanField('Экономика')
+    Humor = BooleanField('Юмор')
+    Politics = BooleanField('Политика')
+    Education = BooleanField('Образование')
+    submit = SubmitField('Показать')
 
-@app.route('/')
+
+@app.route('/', methods=['POST', 'GET'])
 def index():
     db = get_db('menuUrl', 'db/menuUrl.db')
     dbase = FDataBase(db)
+    db_sess = db_session.create_session()
+
+    form = SearchForm()
+    newsList = db_sess.query(News).all()
+
+    userList = db_sess.query(User).all()
+    userDic = {}
+    for i in userList:
+        userDic[i.id] = i.name
+    print(userDic)
+
+    if 'categories_search_list' not in session:
+        session['categories_search_list'] = []
+
+    categories_searh_list = session['categories_search_list']
+    if form.validate_on_submit():
+        categories_searh_list.clear()
+        if form.Business.data:
+            categories_searh_list.append('Business')
+            # sel_cat['Business'] == True
+
+        if form.Economy.data:
+            categories_searh_list.append('Economy')
+            # sel_cat['Economy'] == True
+        if form.Humor.data:
+            categories_searh_list.append('Humor')
+            # sel_cat['Humor'] == True
+        if form.Education.data:
+            categories_searh_list.append('Education')
+            # sel_cat['Education'] == True
+        if form.Politics.data:
+            categories_searh_list.append('Politics')
+            # sel_cat['Politics'] == True
+
+        session['categories_searh_list'] = categories_searh_list
+
+    if (bool(session['categories_search_list']) == True):
+        newsList.clear()
+        for news in db_sess.query(News).all():
+            if (len([x for x in categories_searh_list if x in get_categories(news.id)]) == len(categories_searh_list)):
+                newsList.append(news)
+
+    curr_page = int(request.args.get('page', 1))
+    pgcount = 1
+    remainder = 0
+    all_news = newsList
+
+
+    if (len(all_news) % 7 ==0):
+        pgcount = len(all_news) // 7
+    elif((len(all_news) % 7 !=0)):
+        pgcount = len(all_news) // 7 + 1
+
+    if pgcount == 0:
+        pgcount = 1
+    if curr_page > pgcount:
+        abort(404)
+    if pgcount % 7 > 0:
+        remainder = len(all_news) % 7
+
+    class pgstore:
+        value = pgcount
+
+    match curr_page:
+        case 0:
+            a = all_news[:7]
+        case pgstore.value:
+            a = all_news[pgcount - 1:remainder]
+        case _:
+            a = all_news[curr_page * 7:curr_page * 7 + 7]
+    try:
+        id_sess = session['_user_id']
+    except:
+        pass
 
     authorized = ""
     if 'id' in session:
         authorized = session['id']
 
-    return render_template('base.html', menu=dbase.getMenu(), is_auth=authorized)
+    admin = ''
+    if 'admin' in session:
+        admin = session['admin']
+
+    return render_template('base.html', menu=dbase.getMenu(), is_auth=authorized, newsList=a, userDic=userDic, admin=admin,
+                           form=form, curr_page=curr_page, pagecount=pgcount, sel_cat = session['categories_search_list'])
 
 
 class LoginForm(FlaskForm):
@@ -98,7 +197,7 @@ class RegisterForm(FlaskForm):
 def login():
     db = get_db('menuUrl', 'db/menuUrl.db')
     dbase = FDataBase(db)
-    db_for_users = get_db('users', 'db/users.db')
+    db_for_users = get_db('users', 'db/blogs.db')
     dbase_for_users = FDataBase(db_for_users)
     form = LoginForm()
     if form.validate_on_submit():
@@ -110,7 +209,7 @@ def login():
             session['admin'] = userlogin.get_admin()
             login_user(userlogin)
             return redirect(url_for('index'))
-        return redirect(url_for('index'))
+        flash("Неверный логин/пароль")
 
     return render_template('login.html', title='Авторизация', menu=dbase.getMenu(), form=form)
 
@@ -119,11 +218,9 @@ def login():
 @login_required
 def logout():
     logout_user()
-    print(session['id'])
-    print(session['admin'])
+    del session['id']
+    del session['admin']
     return redirect(url_for('login'))
-
-
 
 
 @app.route('/register/', methods=['GET', 'POST'])
@@ -135,7 +232,7 @@ def register():
     if 'id' in session:
         authorized = session['id']
 
-    db_session.global_init('db/users.db')
+    db_session.global_init('db/blogs.db')
     emailError = ""
     codeAdmin = 'Admin'
     passwordRepeatError = ''
@@ -167,8 +264,8 @@ def register():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], str(s) + '.jpg'))
                 ##resize photo 200 hight with save proportions
                 img = Image.open('static/photos/' + user.photo)
-                width = 64
-                height = 64
+                width = 500
+                height = 500
                 resized_img = img.resize((width, height), Image.ANTIALIAS)
                 resized_img.save('static/photos/' + user.photo)
             db_sess.add(user)
@@ -185,13 +282,13 @@ def register():
 def user_display():
     db_for_menu = get_db('menuUrl', 'db/menuUrl.db')
     dbase_for_menu = FDataBase(db_for_menu)
-    db = get_db('users', 'db/users.db')
+    db = get_db('users', 'db/blogs.db')
     dbase = FDataBase(db)
     authorized = ""
     if 'id' in session:
         authorized = session['id']
 
-    curr_page = int(request.args.get('page'))
+    curr_page = int(request.args.get('page', 1))
     pgcount = 1
     remainder = 0
     all_users = dbase.getAllUsers()
@@ -226,13 +323,19 @@ def user_display():
 
 
 @app.route('/profile/<id>/', methods=['POST', 'GET'])
-def user_profile(id=1):
+def user_profile(id=0):
     db_for_menu = get_db('menuUrl', 'db/menuUrl.db')
     dbase_for_menu = FDataBase(db_for_menu)
-    db = get_db('users', 'db/users.db')
+    db = get_db('users', 'db/blogs.db')
     dbase = FDataBase(db)
     userProfile = dbase.getUser(id)
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.id==id).first()
+    post_list = user.news
     admin = ''
+    authorized=''
+    if 'id' in session:
+        authorized = session['id']
     if 'admin' in session:
         admin = session['admin']
     print(admin)
@@ -242,13 +345,37 @@ def user_profile(id=1):
         db.commit()
         return redirect(url_for('user_profile', id=userProfile[0]))
 
-    return render_template('profile.html', menu=dbase_for_menu.getMenu(), user=userProfile, auth=session['id'],
-                           admin=admin)
+    return render_template('profile.html', menu=dbase_for_menu.getMenu(), user=userProfile, is_auth=session['id'],
+                           admin=admin, newsList = post_list)
 
 
 @app.route('/uploads/<name>')
 def download_file(name):
     return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+
+
+@app.route('/deleteNews/<id_post>')
+def delete_post(id_post=0):
+    db = get_db('news', 'db/blogs.db')
+    db_sess = db_session.create_session()
+
+    print(id_post)
+    news = db_sess.query(News).filter(News.id == id_post).first()
+
+    if news:
+        db_sess.delete(news)
+        db_sess.commit()
+    else:
+        abort(404)
+
+    return redirect(url_for('index'))
+
+@app.errorhandler(404)
+@app.errorhandler(403)
+@app.errorhandler(410)
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template('error.html')
 
 
 if __name__ == '__main__':
