@@ -36,7 +36,7 @@ class UpdatePostForm(FlaskForm):
 
 
 @createPost.route('/', methods=['GET', 'POST'])
-def index():
+def create_post():
     db_session.global_init('db/blogs.db')
     db_sess = db_session.create_session()
     form = PostForm()

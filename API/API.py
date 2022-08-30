@@ -21,6 +21,7 @@ class post_collection(Resource):
                 res_dic[i.id] = {"title": i.title, "content": i.content, "categories": get_categories(i.id)}
             return res_dic
         else:
+            res_dic['cat'] = category
             post_category = db_sess.query(Category).filter(Category.name == category).first()
             for i in post_category.news:
                 res_dic[i.id] = {"title":i.title, "content":i.content, "categories": get_categories(i.id)}

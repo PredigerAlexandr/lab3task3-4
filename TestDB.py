@@ -36,8 +36,16 @@ db_sess = db_session.create_session()
 #     print(i.title)
 # newss = db_sess.query(News).filter(News.id==1).first()
 # print(news.get_categories(newss.id))
-category = db_sess.query(Category).filter(Category.name=='Business').first()
-print((category.news).json())
+# category = db_sess.query(Category).filter(Category.name=='Business').first()
+# for i in category.news:
+#     print(i.id, i.content)
+# print(category.news)
+A = [1,2,3]
+A = []
+print(A)
+A += [5]
+A += [20]
+print(A)
 
 
 

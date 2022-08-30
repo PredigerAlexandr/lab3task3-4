@@ -77,6 +77,7 @@ def main():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 class SearchForm(FlaskForm):
     Business = BooleanField('Бизнесс')
     Economy = BooleanField('Экономика')
@@ -137,10 +138,9 @@ def index():
     remainder = 0
     all_news = newsList
 
-
-    if (len(all_news) % 7 ==0):
+    if (len(all_news) % 7 == 0):
         pgcount = len(all_news) // 7
-    elif((len(all_news) % 7 !=0)):
+    elif ((len(all_news) % 7 != 0)):
         pgcount = len(all_news) // 7 + 1
 
     if pgcount == 0:
@@ -173,8 +173,9 @@ def index():
     if 'admin' in session:
         admin = session['admin']
 
-    return render_template('base.html', menu=dbase.getMenu(), is_auth=authorized, newsList=a, userDic=userDic, admin=admin,
-                           form=form, curr_page=curr_page, pagecount=pgcount, sel_cat = session['categories_search_list'])
+    return render_template('index.html', menu=dbase.getMenu(), is_auth=authorized, newsList=a, userDic=userDic,
+                           admin=admin,
+                           form=form, curr_page=curr_page, pagecount=pgcount, sel_cat=session['categories_search_list'])
 
 
 class LoginForm(FlaskForm):
@@ -330,10 +331,10 @@ def user_profile(id=0):
     dbase = FDataBase(db)
     userProfile = dbase.getUser(id)
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.id==id).first()
+    user = db_sess.query(User).filter(User.id == id).first()
     post_list = user.news
     admin = ''
-    authorized=''
+    authorized = ''
     if 'id' in session:
         authorized = session['id']
     if 'admin' in session:
@@ -346,7 +347,7 @@ def user_profile(id=0):
         return redirect(url_for('user_profile', id=userProfile[0]))
 
     return render_template('profile.html', menu=dbase_for_menu.getMenu(), user=userProfile, is_auth=session['id'],
-                           admin=admin, newsList = post_list)
+                           admin=admin, newsList=post_list)
 
 
 @app.route('/uploads/<name>')
@@ -369,6 +370,7 @@ def delete_post(id_post=0):
         abort(404)
 
     return redirect(url_for('index'))
+
 
 @app.errorhandler(404)
 @app.errorhandler(403)
